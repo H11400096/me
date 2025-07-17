@@ -73,7 +73,7 @@
 <body>
   <div id="header">
     <h2>📋 模擬藥單顯示畫面（V4）</h2>
-    <div>🆔 醫囑號：<strong id="rxId"></strong></div>
+    <div>🆔 醫囑號：<strong id="rxId">#RX20250715-001</strong></div>
     <div id="summary">✅ 已勾選藥品種類數：<span id="totalCount">0</span></div>
   </div>
 
@@ -88,7 +88,27 @@
       </tr>
     </thead>
     <tbody id="medBody">
-      <!-- 動態產生藥品列表 -->
+      <tr>
+        <td><img src="https://i.imgur.com/ONXQe4U.png" class="med-image" onclick="showModal(this)" alt="普拿疼" /></td>
+        <td>普拿疼</td>
+        <td>500mg</td>
+        <td>2</td>
+        <td><input type="checkbox" class="med-check" checked /></td>
+      </tr>
+      <tr>
+        <td><img src="https://i.imgur.com/kHtK6gG.png" class="med-image" onclick="showModal(this)" alt="胃乳" /></td>
+        <td>胃乳</td>
+        <td>10ml</td>
+        <td>1</td>
+        <td><input type="checkbox" class="med-check" checked /></td>
+      </tr>
+      <tr>
+        <td><img src="https://i.imgur.com/dK1k9pJ.png" class="med-image" onclick="showModal(this)" alt="維他命B群" /></td>
+        <td>維他命B群</td>
+        <td>100mg</td>
+        <td>3</td>
+        <td><input type="checkbox" class="med-check" checked /></td>
+      </tr>
     </tbody>
   </table>
 
@@ -97,21 +117,16 @@
   </div>
 
   <script>
-    // 取得網址參數
+    // 取得網址參數並顯示醫囑號
     function getQueryParam(name) {
       const url = new URL(window.location.href);
       return url.searchParams.get(name);
     }
-
     const rx = getQueryParam('rx');
     if (rx) {
       document.getElementById('rxId').textContent = rx;
-      fetchMedicineList(rx);
-    } else {
-      alert("無醫囑號，請從掃描頁進入");
     }
 
-    // 放大圖片
     function showModal(img) {
       const modal = document.getElementById('imgModal');
       const modalImg = document.getElementById('modalImage');
@@ -119,71 +134,23 @@
       modal.style.display = 'flex';
     }
 
-    // 簽收勾選數量統計
     function updateTotalCount() {
       const checks = document.querySelectorAll('.med-check');
       let count = 0;
       checks.forEach(cb => {
-        if (cb.checked) count++;
+        if (cb.checked) {
+          count++;
+        }
       });
       document.getElementById('totalCount').textContent = count;
     }
 
-    // 呼叫 API 取得藥品清單
-    function fetchMedicineList(orderId) {
-      const token = "Q29ubmVjdERCIExvY2FsSG9zdA"; // 改成你的 token
-      const apiUrl = `https://mdevws.csh.org.tw/WebAPI/MedicationConfirm`;
+    document.querySelectorAll('.med-check').forEach(cb => {
+      cb.addEventListener('change', updateTotalCount);
+    });
 
-      fetch(apiUrl, {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("API 取得失敗");
-        return res.json();
-      })
-      .then(data => {
-        if (!data.medicines || data.medicines.length === 0) {
-          alert("沒有藥品資料");
-          return;
-        }
-        renderMedicineTable(data.medicines);
-      })
-      .catch(err => {
-        console.error(err);
-        alert("藥品資料載入失敗，請稍後再試");
-      });
-    }
-
-    // 動態產生藥品表格
-    function renderMedicineTable(medicines) {
-      const tbody = document.getElementById('medBody');
-      tbody.innerHTML = ''; // 清空舊資料
-
-      medicines.forEach(med => {
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-          <td><img src="${med.imageUrl}" class="med-image" alt="${med.name}" onclick="showModal(this)"></td>
-          <td>${med.name}</td>
-          <td>${med.dosage || '-'}</td>
-          <td>${med.quantity}</td>
-          <td><input type="checkbox" class="med-check" checked></td>
-        `;
-
-        tbody.appendChild(tr);
-      });
-
-      // 重新綁定簽收勾選事件
-      document.querySelectorAll('.med-check').forEach(cb => {
-        cb.addEventListener('change', updateTotalCount);
-      });
-
-      updateTotalCount();
-    }
+    // 初始統計
+    updateTotalCount();
   </script>
 </body>
-</html>
+</html>  
